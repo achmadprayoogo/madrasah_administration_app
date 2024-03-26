@@ -28,14 +28,18 @@ function addTahunAjaran(req, res) {
             newTahunAjaran.save().then(()=>{
                 /** get all data including new data */
                 dataTahunAjaran.find().then((data)=>{
+
                     res.status(200).json(data);
+
                 }).catch((error)=>{
+                    
                     console.log(error);
-                    res.status(500).send({messege:"tidak bisa menemkan data", error : error});
+                    res.status(500).send({messege:"internal server error", error : error});
                 })
             }).catch((error)=>{
+
                 console.log(error);
-                res.status(500).send({messege:"tidak bisa menemkan data", error : error});
+                res.status(500).send({messege:"internal server error", error : error});
             });
         };
     }).catch((error)=>{

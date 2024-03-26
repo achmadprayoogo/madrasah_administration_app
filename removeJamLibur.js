@@ -1,6 +1,6 @@
 import { dataSantri, dataTahunAjaran } from "./mongooseSchema.js";
 
-async function addJamLibur(req, res) {
+async function removeJamLibur(req, res) {
     try {
         const { tahun_ajaran, tanggal_awal, jam_awal, tanggal_akhir, jam_akhir, target, keterangan } = req.body;
 
@@ -19,18 +19,21 @@ async function addJamLibur(req, res) {
 
         const result = await dataTahunAjaran.updateOne(
             { tahun_ajaran: tahun_ajaran },
-            { $push: { kbm_nonaktif: newHariLibur } }
+            { $pull: { kbm_nonaktif: newHariLibur } }
         );
 
         if (result.matchedCount > 0) {
-            const updatedData = await dataTahunAjaran.findOne({ tahun_ajaran: tahun_ajaran })
+
+            const updatedData = await dataTahunAjaran.findOne({ tahun_ajaran: tahun_ajaran });
 
             res.status(200).send(updatedData.kbm_nonaktif);
-            
+
             noteAbsen(newHariLibur.target[0], newHariLibur.awal , newHariLibur.akhir);
+            
         } else {
             res.status(200).send({ message: "Data tahun ajaran tidak ditemukan" });
         }
+
     } catch (error) {
         console.error(error);
         res.status(500).send({ message: "Tidak dapat terhubung ke database", error: error });
@@ -48,7 +51,6 @@ async function addJamLibur(req, res) {
 
         dates.forEach(date => {
             times.forEach(time => {
-
                 const isTheFirstDateandTheFirstTime = firstTime <= time && (firstDate - date) == 0;
                 const isTheLastDateandTheLastTime = lastTime >= time && (lastDate - date) == 0;
                 const isBetwenFirstandLastDate = !((firstDate - date) == 0 || (lastDate - date) == 0);
@@ -56,7 +58,7 @@ async function addJamLibur(req, res) {
                 const newObject = { tanggal : date, jam : parseInt(time), absensi : "L"};
 
                 if ( isTheFirstDateandTheFirstTime || isTheLastDateandTheLastTime || isBetwenFirstandLastDate) {
-                    addDataAbsen(idkelas, newObject);
+                    updateDataAbsen(idkelas, newObject);
                 }
             });
         });
@@ -64,24 +66,24 @@ async function addJamLibur(req, res) {
         
     }
 /**----------------------------------------------------------------------------------------- */
-    async function addDataAbsen(idKelas, newData) {
-        
-        await dataSantri.updateMany(
-            { 
-                "statistik_madrasah_diniyyah.idkelas" : {$eq : parseInt(idKelas)}
-            },
-            {   
-                $setOnInsert : { "data_absensi" : []},
-                $push: {"statistik_madrasah_diniyyah.$[elem].data_absensi": newData }
-            },
-            {
-                arrayFilters: [{ "elem.idkelas": parseInt(idKelas) }],
-                upsert: true,
-                new: true,
-                setDefaultsOnInsert: true
-            }
-        ).catch((error) => console.log({messege : "internal server error", error : error}));
-    }
+async function updateDataAbsen(idKelas, newData) {
+
+    await dataSantri.updateMany(
+        { 
+            "statistik_madrasah_diniyyah.idkelas" : {$eq : parseInt(idKelas)}
+        },
+        {   
+            $setOnInsert : { "data_absensi" : []},
+            $pull: {"statistik_madrasah_diniyyah.$[elem].data_absensi": newData }
+        },
+        {
+            arrayFilters: [{ "elem.idkelas": parseInt(idKelas) }],
+            upsert: true,
+            new: true,
+            setDefaultsOnInsert: true
+        }
+    ).catch((error) => console.log({messege : "internal server error", error : error}));
+}
 /**----------------------------------------------------------------------------------------- */
     function getDates(startDate, endDate) {
 
@@ -97,15 +99,12 @@ async function addJamLibur(req, res) {
     }
 /**----------------------------------------------------------------------------------------- */
     function targetToArray(target) {
-
+        
         const array = [];
-
         if ((Array.isArray(target))) {
-
             target.forEach(element => {
                 array.push(parseInt(element))
             });
-            
         } else {
             array.push(parseInt(target))
         }
@@ -114,4 +113,4 @@ async function addJamLibur(req, res) {
 /**----------------------------------------------------------------------------------------- */
 }
 
-export default addJamLibur;
+export default removeJamLibur;

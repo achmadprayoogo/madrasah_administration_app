@@ -11,6 +11,8 @@ const dataTahunAjaranSchema = new mongoose.Schema({
     tahun_ajaran : {type : String, required : true},
     tanggal_awal : {type : String, required : true},
     tanggal_akhir : {type : String, required : true},
+    data_kelas : {type : Object},
+    kbm_nonaktif : {type : Array}
 });
 
 const dataTahunAjaran = mongoose.models.data_tahun_ajaran || mongoose.model('data_tahun_ajaran', dataTahunAjaranSchema);
