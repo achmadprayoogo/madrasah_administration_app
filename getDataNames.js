@@ -23,7 +23,7 @@ async function getDataNames(req, res) {
   } else {
     res.status(200).send({ message: "data tahun ajaran tidak detemukan !" });
   }
-
+/**-------------------------------------------------------------------------- */
   function checkIsKBMAcktive(data) {
     const kbmNonAktif = data.kbm_nonaktif;
 
@@ -42,17 +42,23 @@ async function getDataNames(req, res) {
         tanggalAwal - tanggal == 0 &&
         tanggalAkhir - tanggal != 0 &&
         jamAwal <= jam;
+
       const isLast =
         tanggalAwal - tanggal != 0 &&
         tanggalAkhir - tanggal == 0 &&
         jamAkhir >= jam;
-      const isBetwen = tanggalAwal - tanggal < 0 && tanggalAkhir - tanggal > 0;
+
+      const isBetwen = 
+        tanggalAwal - tanggal < 0 && 
+        tanggalAkhir - tanggal > 0;
+
       const isNow =
         tanggalAwal - tanggal == 0 &&
         tanggalAkhir - tanggal == 0 &&
         (jamAwal == jam || jamAkhir == jam);
 
       let isTarget;
+
       if (targets && targets.length && Array.isArray(targets)) {
         isTarget = targets.filter(
           (isTarget = (target) => target == parseInt(idkelas)),
@@ -65,6 +71,7 @@ async function getDataNames(req, res) {
         return false;
       }
     }
+
     return true;
   }
 
@@ -89,21 +96,42 @@ async function getDataNames(req, res) {
       const responseData = [];
 
       data.forEach((element) => {
-        const entry = element.statistik_madrasah_diniyyah.find(
-          (entry) => entry.idkelas === idkelas,
-        );
-        const nameData = {
-          id: element.id,
-          nama_lengkap: element.nama_lengkap,
-          tahun_ajaran: entry ? entry.tahun_ajaran : null,
-          tingkat: entry ? entry.tingkat : null,
-          idkelas: entry ? entry.idkelas : null,
-          kelas: entry ? entry.kelas : null,
-          walikelas: entry ? parseInt(entry.walikelas) : null,
-          //data_absensi: entry ? entry.data_absensi.find(item => (item.tanggal - tanggal) == 0 && item.jam == jam) : null,
-        };
 
-        responseData.push(nameData);
+          const entry = element.statistik_madrasah_diniyyah.find(
+            (entry) => entry.idkelas === idkelas,
+          );
+
+          if (Array.isArray(entry.data_absensi)) {
+            const absensi = entry.data_absensi.find(
+              (absensi) => absensi.tanggal - tanggal == 0 && absensi.jam == jam,
+            );
+
+            const nameData = {
+              id: element.id,
+              nama_lengkap: element.nama_lengkap,
+              tahun_ajaran: entry ? entry.tahun_ajaran : null,
+              tingkat: entry ? entry.tingkat : null,
+              idkelas: entry ? entry.idkelas : null,
+              kelas: entry ? entry.kelas : null,
+              walikelas: entry ? parseInt(entry.walikelas) : null,
+              data_absensi : absensi ? absensi : null
+            };
+  
+            responseData.push(nameData);
+          } else {
+            const nameData = {
+              id: element.id,
+              nama_lengkap: element.nama_lengkap,
+              tahun_ajaran: entry ? entry.tahun_ajaran : null,
+              tingkat: entry ? entry.tingkat : null,
+              idkelas: entry ? entry.idkelas : null,
+              kelas: entry ? entry.kelas : null,
+              walikelas: entry ? parseInt(entry.walikelas) : null
+            };
+  
+            responseData.push(nameData);
+          }
+          
       });
 
       return { status: 200, data: responseData };

@@ -6,10 +6,10 @@ async function addAbsensi(req, res) {
     const jam = parseInt(req.body.jam);
     const arrayID = dataabsen;
 
-    for (let i = 0; i < arrayID.length; i++) {
-        const element = arrayID[i];
-        arrayID[i] = JSON.parse(element);
-    }
+    // for (let i = 0; i < arrayID.length; i++) {
+    //     const element = arrayID[i];
+    //     arrayID[i] = JSON.parse(element);
+    // }
 
     const response = await noteAbsen(arrayID);
     
@@ -23,7 +23,7 @@ async function addAbsensi(req, res) {
 
         for (let i = 0; i < array.length; i++) {
             const element = array[i];
-            const newObject = { tanggal : tanggal, jam : jam, absensi : element.absen};
+            const newObject = { id : element.id, tanggal : tanggal, jam : jam, absensi : element.absen};
             
             await dataSantri.updateOne(
                 {
@@ -31,7 +31,7 @@ async function addAbsensi(req, res) {
                     "statistik_madrasah_diniyyah.idkelas" : {$eq : parseInt(idkelas)}
                 },
                 {   $setOnInsert : { "data_absensi" : []},
-                    $push: {"statistik_madrasah_diniyyah.$[elem].data_absensi": newObject }
+                    $addToSet: {"statistik_madrasah_diniyyah.$[elem].data_absensi": newObject }
                 },
                 {
                     arrayFilters: [{ "elem.idkelas": parseInt(idkelas) }],
@@ -42,6 +42,7 @@ async function addAbsensi(req, res) {
             )
             .then((data)=> {
                 if (data.modifiedCount !== 0) {
+                    console.log(newObject);
                     dataSaved.push(newObject)
                     status = 201;
                 } else {

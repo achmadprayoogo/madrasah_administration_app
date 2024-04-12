@@ -6,10 +6,10 @@ async function updateAbsensi(req, res) {
     const jam = parseInt(req.body.jam);
     const arrayID = dataabsen;
 
-    for (let i = 0; i < arrayID.length; i++) {
-        const element = arrayID[i];
-        arrayID[i] = JSON.parse(element);
-    }
+    // for (let i = 0; i < arrayID.length; i++) {
+    //     const element = arrayID[i];
+    //     arrayID[i] = JSON.parse(element);
+    // }
 
     const response = await noteAbsen(arrayID);
     
@@ -24,7 +24,7 @@ async function updateAbsensi(req, res) {
 
         for (let i = 0; i < array.length; i++) {
             const element = array[i];
-            const newObject = { tanggal : tanggal, jam : jam, absensi : element.absen};
+            const newObject = { id : element.id, tanggal : tanggal, jam : jam, absensi : element.absen};
             
             await dataSantri.updateOne(
                 {

@@ -39,6 +39,7 @@ const upload = multer({ storage: storage });
 /** middleware */
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.set("query parser", (str) =>
   qs.parse(str, {
     /* custom options */
